@@ -1,0 +1,8 @@
+fragment DefUserResponse on UserResponse {
+  errors {
+    ...InputError
+  }
+  user {
+    ...RegularUser
+  }
+}

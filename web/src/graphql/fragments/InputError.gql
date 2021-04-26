@@ -1,0 +1,4 @@
+fragment InputError on InputError {
+  field
+  message
+}
