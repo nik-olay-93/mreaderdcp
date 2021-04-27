@@ -1,14 +1,18 @@
 import { Button } from "@chakra-ui/button";
-import { Box, Flex } from "@chakra-ui/layout";
+import { Heading, Flex } from "@chakra-ui/layout";
 import React from "react";
 import NextLink from "next/link";
 import { useLogoutMutation, useMeQuery } from "../generated/graphql";
 import { isServer } from "../utils/isServer";
 import { useApolloClient } from "@apollo/client";
+import { WrapperSize, WrapperVariant } from "./Wrapper";
+import { Box } from "@chakra-ui/react";
 
-interface NavBarProps {}
+interface NavBarProps {
+  variant?: WrapperVariant;
+}
 
-export const NavBar: React.FC<NavBarProps> = ({}) => {
+export const NavBar: React.FC<NavBarProps> = ({ variant = "regular" }) => {
   const [logout, { loading: logoutFetching }] = useLogoutMutation();
   const apolloClient = useApolloClient();
   const { data, loading } = useMeQuery({
@@ -48,8 +52,24 @@ export const NavBar: React.FC<NavBarProps> = ({}) => {
   }
 
   return (
-    <Flex position="sticky" top={0} zIndex={10} bg="tomato" p={3}>
-      <Box ml="auto">{body}</Box>
+    <Flex
+      justifyContent="center"
+      position="sticky"
+      top={0}
+      zIndex={10}
+      bg="tomato"
+      p={3}
+    >
+      <Flex
+        alignItems="center"
+        justifyContent="space-between"
+        w={WrapperSize[variant]}
+      >
+        <Heading color="dimgrey" size="lg">
+          MgReaderDcp
+        </Heading>
+        <Box>{body}</Box>
+      </Flex>
     </Flex>
   );
 };

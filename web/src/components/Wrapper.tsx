@@ -3,6 +3,12 @@ import React from "react";
 
 export type WrapperVariant = "small" | "regular" | "large";
 
+export enum WrapperSize {
+  small = "400px",
+  regular = "800px",
+  large = "1200px",
+}
+
 interface WrapperProps {
   variant?: WrapperVariant;
 }
@@ -12,22 +18,8 @@ export const Wrapper: React.FC<WrapperProps> = ({
   variant = "regular",
 }) => {
   let maxW;
-  switch (variant) {
-    case "small":
-      maxW = "400px";
-      break;
+  maxW = WrapperSize[variant];
 
-    case "regular":
-      maxW = "800px";
-      break;
-
-    case "large":
-      maxW = "1200px";
-      break;
-
-    default:
-      break;
-  }
   return (
     <Box mt={8} maxW={maxW} w="100$" mx="auto">
       {children}
