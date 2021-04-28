@@ -12,6 +12,9 @@ import connectRedis from "connect-redis";
 import Redis from "ioredis";
 import { Account } from "./entities/Account";
 import { AccountResolver } from "./resolvers/account";
+import { Book } from "./entities/Book";
+import { BookResolver } from "./resolvers/book";
+import { graphqlUploadExpress } from "graphql-upload";
 
 const main = async () => {
   const conn = await createConnection({
@@ -22,11 +25,12 @@ const main = async () => {
     logging: !__prod__,
     synchronize: true,
     migrations: [path.join(__dirname, "./migrations/*")],
-    entities: [Account],
+    entities: [Account, Book],
   });
   await conn.runMigrations();
 
   const app = express();
+  app.use("/graphql", graphqlUploadExpress());
 
   const RedisStore = connectRedis(session);
   const redisClient = new Redis();
@@ -56,9 +60,10 @@ const main = async () => {
 
   const apolloServer = new ApolloServer({
     schema: await buildSchema({
-      resolvers: [HelloResolver, AccountResolver],
+      resolvers: [HelloResolver, AccountResolver, BookResolver],
       validate: false,
     }),
+    uploads: false,
     context: ({ req, res }): MyContext => ({
       req,
       res,

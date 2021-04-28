@@ -1,5 +1,6 @@
 server/dist
 server/node_modules
+server/books
 
 web/.next
 web/node_modules

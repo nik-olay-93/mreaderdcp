@@ -4,9 +4,11 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from "typeorm";
+import { Book } from "./Book";
 
 @ObjectType()
 @Entity()
@@ -22,6 +24,10 @@ export class Account extends BaseEntity {
   @Field(() => String)
   @Column({ unique: true })
   email!: string;
+
+  @Field(() => [Book])
+  @OneToMany(() => Book, (book) => book.creator)
+  books: Book[];
 
   @Column()
   password!: string;
