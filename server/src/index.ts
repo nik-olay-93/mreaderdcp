@@ -15,6 +15,7 @@ import { AccountResolver } from "./resolvers/account";
 import { Book } from "./entities/Book";
 import { BookResolver } from "./resolvers/book";
 import { graphqlUploadExpress } from "graphql-upload";
+import { getBookPage } from "./utils/bookRoutes";
 
 const main = async () => {
   const conn = await createConnection({
@@ -57,6 +58,10 @@ const main = async () => {
       },
     })
   );
+
+  const bookRouter = express.Router();
+  app.use("/api/book/", bookRouter);
+  getBookPage(bookRouter);
 
   const apolloServer = new ApolloServer({
     schema: await buildSchema({

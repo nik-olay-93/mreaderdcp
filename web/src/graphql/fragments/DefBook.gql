@@ -1,0 +1,14 @@
+fragment DefBook on Book {
+  id
+  name
+  description
+  pages
+  artist
+  genres
+  views
+  creator {
+    id
+    username
+  }
+  createdAt
+}

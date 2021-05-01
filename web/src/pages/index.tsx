@@ -1,9 +1,9 @@
 import React from "react";
-import { NavBar } from "../components/NavBar";
+import { Wrapper } from "../components/Wrapper";
 import { withApollo } from "../utils/withApollo";
 
 const Index: React.FC<{}> = ({}) => {
-  return <NavBar variant="large" />;
+  return <Wrapper></Wrapper>;
 };
 
 export default withApollo({ ssr: true })(Index);

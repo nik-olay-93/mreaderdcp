@@ -1,0 +1,5 @@
+query Book($name: String, $id: Int) {
+  book(name: $name, id: $id) {
+    ...DefBook
+  }
+}

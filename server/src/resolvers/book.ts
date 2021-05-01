@@ -143,7 +143,18 @@ export class BookResolver {
   }
 
   @Query(() => Book, { nullable: true })
-  async book(@Arg("id", () => Int) bId: number): Promise<Book | undefined> {
-    return await Book.findOne(bId, { relations: ["creator"] });
+  async book(
+    @Arg("id", () => Int, { nullable: true }) bId?: number,
+    @Arg("name", () => String, { nullable: true }) bName?: string
+  ): Promise<Book | undefined> {
+    if (bId) {
+      return await Book.findOne(bId, { relations: ["creator"] });
+    }
+
+    if (bName) {
+      return await Book.findOne({ name: bName }, { relations: ["creator"] });
+    }
+
+    return undefined;
   }
 }

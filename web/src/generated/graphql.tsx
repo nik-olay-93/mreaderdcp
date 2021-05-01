@@ -12,6 +12,8 @@ export type Scalars = {
   Boolean: boolean;
   Int: number;
   Float: number;
+  /** The `Upload` scalar type represents a file upload. */
+  Upload: any;
 };
 
 export type Account = {
@@ -19,8 +21,36 @@ export type Account = {
   id: Scalars['String'];
   username: Scalars['String'];
   email: Scalars['String'];
+  books: Array<Book>;
   createdAt: Scalars['String'];
   udpatedAt: Scalars['String'];
+};
+
+export type Book = {
+  __typename?: 'Book';
+  id: Scalars['Int'];
+  name: Scalars['String'];
+  description: Scalars['String'];
+  genres: Array<Scalars['String']>;
+  artist: Scalars['String'];
+  creator: Account;
+  views: Scalars['Int'];
+  pages: Scalars['Int'];
+  createdAt: Scalars['String'];
+  udpatedAt: Scalars['String'];
+};
+
+export type BookInput = {
+  name: Scalars['String'];
+  description: Scalars['String'];
+  genres: Array<Scalars['String']>;
+  artist: Scalars['String'];
+};
+
+export type BookResponse = {
+  __typename?: 'BookResponse';
+  errors?: Maybe<Array<InputError>>;
+  book?: Maybe<Book>;
 };
 
 export type InputError = {
@@ -40,6 +70,7 @@ export type Mutation = {
   register: UserResponse;
   login: UserResponse;
   logout: Scalars['Boolean'];
+  createBook: BookResponse;
 };
 
 
@@ -52,10 +83,30 @@ export type MutationLoginArgs = {
   options: LoginInput;
 };
 
+
+export type MutationCreateBookArgs = {
+  files: Array<Scalars['Upload']>;
+  options: BookInput;
+};
+
 export type Query = {
   __typename?: 'Query';
   hello: Scalars['String'];
   me?: Maybe<Account>;
+  books: Array<Book>;
+  book?: Maybe<Book>;
+};
+
+
+export type QueryBooksArgs = {
+  offset?: Maybe<Scalars['Int']>;
+  limit: Scalars['Int'];
+};
+
+
+export type QueryBookArgs = {
+  name?: Maybe<Scalars['String']>;
+  id?: Maybe<Scalars['Int']>;
 };
 
 export type RegisterInput = {
@@ -64,11 +115,21 @@ export type RegisterInput = {
   password: Scalars['String'];
 };
 
+
 export type UserResponse = {
   __typename?: 'UserResponse';
   user?: Maybe<Account>;
   errors?: Maybe<Array<InputError>>;
 };
+
+export type DefBookFragment = (
+  { __typename?: 'Book' }
+  & Pick<Book, 'id' | 'name' | 'description' | 'pages' | 'artist' | 'genres' | 'views' | 'createdAt'>
+  & { creator: (
+    { __typename?: 'Account' }
+    & Pick<Account, 'id' | 'username'>
+  ) }
+);
 
 export type DefUserResponseFragment = (
   { __typename?: 'UserResponse' }
@@ -114,17 +175,6 @@ export type LogoutMutation = (
   & Pick<Mutation, 'logout'>
 );
 
-export type MeQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type MeQuery = (
-  { __typename?: 'Query' }
-  & { me?: Maybe<(
-    { __typename?: 'Account' }
-    & RegularUserFragment
-  )> }
-);
-
 export type RegisterMutationVariables = Exact<{
   username: Scalars['String'];
   email: Scalars['String'];
@@ -140,6 +190,47 @@ export type RegisterMutation = (
   ) }
 );
 
+export type BookQueryVariables = Exact<{
+  name?: Maybe<Scalars['String']>;
+  id?: Maybe<Scalars['Int']>;
+}>;
+
+
+export type BookQuery = (
+  { __typename?: 'Query' }
+  & { book?: Maybe<(
+    { __typename?: 'Book' }
+    & DefBookFragment
+  )> }
+);
+
+export type MeQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type MeQuery = (
+  { __typename?: 'Query' }
+  & { me?: Maybe<(
+    { __typename?: 'Account' }
+    & RegularUserFragment
+  )> }
+);
+
+export const DefBookFragmentDoc = gql`
+    fragment DefBook on Book {
+  id
+  name
+  description
+  pages
+  artist
+  genres
+  views
+  creator {
+    id
+    username
+  }
+  createdAt
+}
+    `;
 export const InputErrorFragmentDoc = gql`
     fragment InputError on InputError {
   field
@@ -229,40 +320,6 @@ export function useLogoutMutation(baseOptions?: Apollo.MutationHookOptions<Logou
 export type LogoutMutationHookResult = ReturnType<typeof useLogoutMutation>;
 export type LogoutMutationResult = Apollo.MutationResult<LogoutMutation>;
 export type LogoutMutationOptions = Apollo.BaseMutationOptions<LogoutMutation, LogoutMutationVariables>;
-export const MeDocument = gql`
-    query Me {
-  me {
-    ...RegularUser
-  }
-}
-    ${RegularUserFragmentDoc}`;
-
-/**
- * __useMeQuery__
- *
- * To run a query within a React component, call `useMeQuery` and pass it any options that fit your needs.
- * When your component renders, `useMeQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useMeQuery({
- *   variables: {
- *   },
- * });
- */
-export function useMeQuery(baseOptions?: Apollo.QueryHookOptions<MeQuery, MeQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<MeQuery, MeQueryVariables>(MeDocument, options);
-      }
-export function useMeLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<MeQuery, MeQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<MeQuery, MeQueryVariables>(MeDocument, options);
-        }
-export type MeQueryHookResult = ReturnType<typeof useMeQuery>;
-export type MeLazyQueryHookResult = ReturnType<typeof useMeLazyQuery>;
-export type MeQueryResult = Apollo.QueryResult<MeQuery, MeQueryVariables>;
 export const RegisterDocument = gql`
     mutation Register($username: String!, $email: String!, $password: String!) {
   register(options: {username: $username, email: $email, password: $password}) {
@@ -298,3 +355,73 @@ export function useRegisterMutation(baseOptions?: Apollo.MutationHookOptions<Reg
 export type RegisterMutationHookResult = ReturnType<typeof useRegisterMutation>;
 export type RegisterMutationResult = Apollo.MutationResult<RegisterMutation>;
 export type RegisterMutationOptions = Apollo.BaseMutationOptions<RegisterMutation, RegisterMutationVariables>;
+export const BookDocument = gql`
+    query Book($name: String, $id: Int) {
+  book(name: $name, id: $id) {
+    ...DefBook
+  }
+}
+    ${DefBookFragmentDoc}`;
+
+/**
+ * __useBookQuery__
+ *
+ * To run a query within a React component, call `useBookQuery` and pass it any options that fit your needs.
+ * When your component renders, `useBookQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useBookQuery({
+ *   variables: {
+ *      name: // value for 'name'
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useBookQuery(baseOptions?: Apollo.QueryHookOptions<BookQuery, BookQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<BookQuery, BookQueryVariables>(BookDocument, options);
+      }
+export function useBookLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<BookQuery, BookQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<BookQuery, BookQueryVariables>(BookDocument, options);
+        }
+export type BookQueryHookResult = ReturnType<typeof useBookQuery>;
+export type BookLazyQueryHookResult = ReturnType<typeof useBookLazyQuery>;
+export type BookQueryResult = Apollo.QueryResult<BookQuery, BookQueryVariables>;
+export const MeDocument = gql`
+    query Me {
+  me {
+    ...RegularUser
+  }
+}
+    ${RegularUserFragmentDoc}`;
+
+/**
+ * __useMeQuery__
+ *
+ * To run a query within a React component, call `useMeQuery` and pass it any options that fit your needs.
+ * When your component renders, `useMeQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useMeQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useMeQuery(baseOptions?: Apollo.QueryHookOptions<MeQuery, MeQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<MeQuery, MeQueryVariables>(MeDocument, options);
+      }
+export function useMeLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<MeQuery, MeQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<MeQuery, MeQueryVariables>(MeDocument, options);
+        }
+export type MeQueryHookResult = ReturnType<typeof useMeQuery>;
+export type MeLazyQueryHookResult = ReturnType<typeof useMeLazyQuery>;
+export type MeQueryResult = Apollo.QueryResult<MeQuery, MeQueryVariables>;
