@@ -1,0 +1,8 @@
+fragment OvBook on Book {
+  id
+  name
+  genres
+  pages
+  views
+  artist
+}

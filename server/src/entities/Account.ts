@@ -9,6 +9,7 @@ import {
   UpdateDateColumn,
 } from "typeorm";
 import { Book } from "./Book";
+import { Rate } from "./Rate";
 
 @ObjectType()
 @Entity()
@@ -28,6 +29,9 @@ export class Account extends BaseEntity {
   @Field(() => [Book])
   @OneToMany(() => Book, (book) => book.creator)
   books: Book[];
+
+  @OneToMany(() => Rate, (rate) => rate.creator)
+  ratings: Rate[];
 
   @Column()
   password!: string;

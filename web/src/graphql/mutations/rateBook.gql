@@ -1,0 +1,3 @@
+mutation RateBook($bookId: Int!, $score: Float!) {
+  rateBook(score: $score, bookId: $bookId)
+}

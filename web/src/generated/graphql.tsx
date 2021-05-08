@@ -35,9 +35,12 @@ export type Book = {
   artist: Scalars['String'];
   creator: Account;
   views: Scalars['Int'];
+  ratingsCount: Scalars['Int'];
+  ratingsSum: Scalars['Int'];
+  myRating?: Maybe<Scalars['Float']>;
   pages: Scalars['Int'];
   createdAt: Scalars['String'];
-  udpatedAt: Scalars['String'];
+  updatedAt: Scalars['String'];
 };
 
 export type BookInput = {
@@ -71,6 +74,7 @@ export type Mutation = {
   login: UserResponse;
   logout: Scalars['Boolean'];
   createBook: BookResponse;
+  rateBook: Scalars['Boolean'];
 };
 
 
@@ -87,6 +91,12 @@ export type MutationLoginArgs = {
 export type MutationCreateBookArgs = {
   files: Array<Scalars['Upload']>;
   options: BookInput;
+};
+
+
+export type MutationRateBookArgs = {
+  bookId: Scalars['Int'];
+  score: Scalars['Float'];
 };
 
 export type Query = {
@@ -124,7 +134,7 @@ export type UserResponse = {
 
 export type DefBookFragment = (
   { __typename?: 'Book' }
-  & Pick<Book, 'id' | 'name' | 'description' | 'pages' | 'artist' | 'genres' | 'views' | 'createdAt'>
+  & Pick<Book, 'id' | 'name' | 'description' | 'pages' | 'artist' | 'genres' | 'views' | 'ratingsSum' | 'ratingsCount' | 'myRating' | 'createdAt'>
   & { creator: (
     { __typename?: 'Account' }
     & Pick<Account, 'id' | 'username'>
@@ -145,6 +155,11 @@ export type DefUserResponseFragment = (
 export type InputErrorFragment = (
   { __typename?: 'InputError' }
   & Pick<InputError, 'field' | 'message'>
+);
+
+export type OvBookFragment = (
+  { __typename?: 'Book' }
+  & Pick<Book, 'id' | 'name' | 'genres' | 'pages' | 'views' | 'artist'>
 );
 
 export type RegularUserFragment = (
@@ -173,6 +188,17 @@ export type LogoutMutationVariables = Exact<{ [key: string]: never; }>;
 export type LogoutMutation = (
   { __typename?: 'Mutation' }
   & Pick<Mutation, 'logout'>
+);
+
+export type RateBookMutationVariables = Exact<{
+  bookId: Scalars['Int'];
+  score: Scalars['Float'];
+}>;
+
+
+export type RateBookMutation = (
+  { __typename?: 'Mutation' }
+  & Pick<Mutation, 'rateBook'>
 );
 
 export type RegisterMutationVariables = Exact<{
@@ -204,6 +230,20 @@ export type BookQuery = (
   )> }
 );
 
+export type BooksQueryVariables = Exact<{
+  limit: Scalars['Int'];
+  offset?: Maybe<Scalars['Int']>;
+}>;
+
+
+export type BooksQuery = (
+  { __typename?: 'Query' }
+  & { books: Array<(
+    { __typename?: 'Book' }
+    & OvBookFragment
+  )> }
+);
+
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -228,6 +268,9 @@ export const DefBookFragmentDoc = gql`
     id
     username
   }
+  ratingsSum
+  ratingsCount
+  myRating
   createdAt
 }
     `;
@@ -255,6 +298,16 @@ export const DefUserResponseFragmentDoc = gql`
 }
     ${InputErrorFragmentDoc}
 ${RegularUserFragmentDoc}`;
+export const OvBookFragmentDoc = gql`
+    fragment OvBook on Book {
+  id
+  name
+  genres
+  pages
+  views
+  artist
+}
+    `;
 export const LoginDocument = gql`
     mutation Login($username: String, $email: String, $password: String!) {
   login(options: {username: $username, email: $email, password: $password}) {
@@ -320,6 +373,38 @@ export function useLogoutMutation(baseOptions?: Apollo.MutationHookOptions<Logou
 export type LogoutMutationHookResult = ReturnType<typeof useLogoutMutation>;
 export type LogoutMutationResult = Apollo.MutationResult<LogoutMutation>;
 export type LogoutMutationOptions = Apollo.BaseMutationOptions<LogoutMutation, LogoutMutationVariables>;
+export const RateBookDocument = gql`
+    mutation RateBook($bookId: Int!, $score: Float!) {
+  rateBook(score: $score, bookId: $bookId)
+}
+    `;
+export type RateBookMutationFn = Apollo.MutationFunction<RateBookMutation, RateBookMutationVariables>;
+
+/**
+ * __useRateBookMutation__
+ *
+ * To run a mutation, you first call `useRateBookMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRateBookMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [rateBookMutation, { data, loading, error }] = useRateBookMutation({
+ *   variables: {
+ *      bookId: // value for 'bookId'
+ *      score: // value for 'score'
+ *   },
+ * });
+ */
+export function useRateBookMutation(baseOptions?: Apollo.MutationHookOptions<RateBookMutation, RateBookMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RateBookMutation, RateBookMutationVariables>(RateBookDocument, options);
+      }
+export type RateBookMutationHookResult = ReturnType<typeof useRateBookMutation>;
+export type RateBookMutationResult = Apollo.MutationResult<RateBookMutation>;
+export type RateBookMutationOptions = Apollo.BaseMutationOptions<RateBookMutation, RateBookMutationVariables>;
 export const RegisterDocument = gql`
     mutation Register($username: String!, $email: String!, $password: String!) {
   register(options: {username: $username, email: $email, password: $password}) {
@@ -391,6 +476,42 @@ export function useBookLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<BookQ
 export type BookQueryHookResult = ReturnType<typeof useBookQuery>;
 export type BookLazyQueryHookResult = ReturnType<typeof useBookLazyQuery>;
 export type BookQueryResult = Apollo.QueryResult<BookQuery, BookQueryVariables>;
+export const BooksDocument = gql`
+    query Books($limit: Int!, $offset: Int) {
+  books(limit: $limit, offset: $offset) {
+    ...OvBook
+  }
+}
+    ${OvBookFragmentDoc}`;
+
+/**
+ * __useBooksQuery__
+ *
+ * To run a query within a React component, call `useBooksQuery` and pass it any options that fit your needs.
+ * When your component renders, `useBooksQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useBooksQuery({
+ *   variables: {
+ *      limit: // value for 'limit'
+ *      offset: // value for 'offset'
+ *   },
+ * });
+ */
+export function useBooksQuery(baseOptions: Apollo.QueryHookOptions<BooksQuery, BooksQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<BooksQuery, BooksQueryVariables>(BooksDocument, options);
+      }
+export function useBooksLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<BooksQuery, BooksQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<BooksQuery, BooksQueryVariables>(BooksDocument, options);
+        }
+export type BooksQueryHookResult = ReturnType<typeof useBooksQuery>;
+export type BooksLazyQueryHookResult = ReturnType<typeof useBooksLazyQuery>;
+export type BooksQueryResult = Apollo.QueryResult<BooksQuery, BooksQueryVariables>;
 export const MeDocument = gql`
     query Me {
   me {

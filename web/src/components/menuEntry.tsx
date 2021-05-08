@@ -2,17 +2,18 @@ import { Flex, Icon, Link } from "@chakra-ui/react";
 import React from "react";
 import { IconType } from "react-icons";
 import NextLink from "next/link";
+import { GoPrimitiveDot } from "react-icons/go";
 
 interface MenuEntryProps {
   href?: string;
-  icon: IconType;
+  icon?: IconType;
   text: string;
   onClick?: () => Promise<void>;
 }
 
 export const MenuEntry: React.FC<MenuEntryProps> = ({
   href,
-  icon,
+  icon = GoPrimitiveDot,
   text,
   onClick,
 }) => {

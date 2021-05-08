@@ -2,6 +2,7 @@ import {
   Arg,
   Ctx,
   Field,
+  Float,
   InputType,
   Int,
   Mutation,
@@ -16,6 +17,7 @@ import { Book } from "../entities/Book";
 import { InputError } from "../utils/InputError";
 import { MyContext } from "../types";
 import { Account } from "../entities/Account";
+import { Rate } from "../entities/Rate";
 
 @ObjectType()
 class BookResponse {
@@ -148,13 +150,70 @@ export class BookResolver {
     @Arg("name", () => String, { nullable: true }) bName?: string
   ): Promise<Book | undefined> {
     if (bId) {
-      return await Book.findOne(bId, { relations: ["creator"] });
+      return await Book.findOne(bId, { relations: ["creator", "ratings"] });
     }
 
     if (bName) {
-      return await Book.findOne({ name: bName }, { relations: ["creator"] });
+      return await Book.findOne(
+        { name: bName },
+        { relations: ["creator", "ratings"] }
+      );
     }
 
     return undefined;
+  }
+
+  @Mutation(() => Boolean)
+  async rateBook(
+    @Ctx() ctx: MyContext,
+    @Arg("score", () => Float) score: number,
+    @Arg("bookId", () => Int) bookId: number
+  ): Promise<boolean> {
+    const { req } = ctx;
+
+    const id = req.session.userId;
+    const creator = await Account.findOne(id);
+    if (!creator) {
+      return false;
+    }
+
+    const book = await Book.findOne(bookId);
+    if (!book) {
+      return false;
+    }
+
+    var rate = await Rate.findOne({
+      where: {
+        creator: creator,
+        book: this,
+      },
+    });
+
+    if (!rate) {
+      rate = Rate.create({ book, creator });
+    }
+
+    rate.score = score;
+
+    if (!book.ratings) {
+      book.ratings = [];
+    }
+    book.ratings.push(rate);
+
+    if (!creator.ratings) {
+      creator.ratings = [];
+    }
+    creator.ratings.push(rate);
+
+    try {
+      creator.save();
+      book.save();
+      rate.save();
+    } catch (err) {
+      console.log(err);
+      return false;
+    }
+
+    return true;
   }
 }

@@ -16,6 +16,7 @@ import { Book } from "./entities/Book";
 import { BookResolver } from "./resolvers/book";
 import { graphqlUploadExpress } from "graphql-upload";
 import { getBookPage } from "./utils/bookRoutes";
+import { Rate } from "./entities/Rate";
 
 const main = async () => {
   const conn = await createConnection({
@@ -26,7 +27,7 @@ const main = async () => {
     logging: !__prod__,
     synchronize: true,
     migrations: [path.join(__dirname, "./migrations/*")],
-    entities: [Account, Book],
+    entities: [Account, Book, Rate],
   });
   await conn.runMigrations();
 

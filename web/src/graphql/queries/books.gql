@@ -1,0 +1,5 @@
+query Books($limit: Int!, $offset: Int) {
+  books(limit: $limit, offset: $offset) {
+    ...OvBook
+  }
+}

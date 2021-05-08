@@ -10,5 +10,8 @@ fragment DefBook on Book {
     id
     username
   }
+  ratingsSum
+  ratingsCount
+  myRating
   createdAt
 }
