@@ -1,12 +1,22 @@
 import { Grid, Heading, Link } from "@chakra-ui/layout";
-import { Flex, Image, Progress, Text } from "@chakra-ui/react";
+import {
+  Button,
+  Flex,
+  IconButton,
+  Image,
+  Progress,
+  Text,
+} from "@chakra-ui/react";
 import { useRouter } from "next/router";
 import React from "react";
 import { Menu } from "../../components/Menu";
+import { MenuEntry } from "../../components/menuEntry";
 import { RateButton } from "../../components/RateButton";
 import { Wrapper } from "../../components/Wrapper";
 import { useBookQuery } from "../../generated/graphql";
 import { withApollo } from "../../utils/withApollo";
+import { GrClose } from "react-icons/gr";
+import NextLink from "next/link";
 
 export const AboutPage: React.FC<{}> = ({}) => {
   const router = useRouter();
@@ -28,33 +38,24 @@ export const AboutPage: React.FC<{}> = ({}) => {
           <Grid
             templateAreas='
                 "Cover Header"
-                "Cover Genres"
-                "Rating ."
+                "Cover Desc"
+                "Rating Desc"
             '
             templateRows="1fr 1fr 1fr"
             templateColumns="40% 1fr"
             height="96vh"
           >
             <Flex gridArea="Cover">
-              <Image
-                mb="auto"
-                mt="20%"
-                src={`http://localhost:4000/api/book/page/${data?.book?.name}/0`}
-              />
+              <NextLink href={`/read/${name}`}>
+                <Image
+                  my="auto"
+                  src={`http://localhost:4000/api/book/page/${data?.book?.name}/0`}
+                />
+              </NextLink>
             </Flex>
             <Flex gridArea="Header" justifyContent="center" alignItems="center">
               <Heading fontSize="7xl">{data.book?.name}</Heading>
-            </Flex>
-            <Flex
-              alignItems="flex-start"
-              justifyContent="center"
-              gridArea="Genres"
-            >
-              {data.book?.genres.map((val, key) => (
-                <Link key={key}>
-                  <Text mx={2}>{val}</Text>
-                </Link>
-              ))}
+              <IconButton ml={10} aria-label="delete" as={GrClose} />
             </Flex>
             <Flex flexDirection="column" gridArea="Rating">
               <Progress
@@ -65,12 +66,26 @@ export const AboutPage: React.FC<{}> = ({}) => {
                 max={5}
                 value={data.book.ratingsSum / data.book.ratingsCount}
               />
-              {data.book.myRating ? (
-                <Text>You rated: {data.book.myRating}</Text>
-              ) : (
-                <Text>You havent rated yet, rate now:</Text>
-              )}
+              <Flex justifyContent="center">
+                {data.book.myRating ? (
+                  <Text>You rated: {data.book.myRating}</Text>
+                ) : (
+                  <Text>You havent rated yet, rate now:</Text>
+                )}
+              </Flex>
               <RateButton book={data.book} />
+            </Flex>
+            <Flex flexDirection="column" gridArea="Desc">
+              <Flex my={2} alignItems="flex-start" justifyContent="center">
+                {data.book?.genres.map((val, key) => (
+                  <Link key={key}>
+                    <Text mx={2}>{val}</Text>
+                  </Link>
+                ))}
+              </Flex>
+              <Flex alignItems="center" my={2} justifyContent="center">
+                {data.book.description}
+              </Flex>
             </Flex>
           </Grid>
         )}

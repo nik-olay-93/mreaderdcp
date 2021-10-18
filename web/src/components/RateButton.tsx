@@ -9,7 +9,7 @@ interface RateButtonProps {
 
 export const RateButton: React.FC<RateButtonProps> = ({ book }) => {
   const [rateBook] = useRateBookMutation();
-  const [curScore, setScore] = useState(book.myRating);
+  const [curScore, setScore] = useState(0);
   const rate = async (score: number) => {
     if (score === curScore) {
       return;
@@ -32,13 +32,16 @@ export const RateButton: React.FC<RateButtonProps> = ({ book }) => {
             ratingsSum(prevSum, { readField }) {
               return prevSum + score - (readField("myRating") as number);
             },
+            ratingsCount(prevCount) {
+              return prevCount + (book.myRating ? 0 : 1);
+            },
           },
         });
       },
     });
   };
   return (
-    <ButtonGroup>
+    <ButtonGroup justifyContent="space-between">
       {[1, 2, 3, 4, 5].map((val) => (
         <Button
           key={val}

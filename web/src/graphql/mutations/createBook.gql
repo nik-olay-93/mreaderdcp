@@ -1,0 +1,24 @@
+mutation CreateBook(
+  $name: String!
+  $description: String!
+  $genres: [String!]!
+  $artist: String!
+  $files: [Upload!]!
+) {
+  createBook(
+    options: {
+      name: $name
+      description: $description
+      genres: $genres
+      artist: $artist
+    }
+    files: $files
+  ) {
+    errors {
+      ...InputError
+    }
+    book {
+      ...OvBook
+    }
+  }
+}

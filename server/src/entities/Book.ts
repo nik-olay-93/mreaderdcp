@@ -59,6 +59,10 @@ export class Book extends BaseEntity {
 
   @Field(() => Float, { nullable: true })
   async myRating(@Ctx() { req }: MyContext): Promise<number | undefined> {
+    if (!req.session.userId) {
+      return undefined;
+    }
+
     const creator = await Account.findOne(req.session.userId, {
       relations: ["ratings", "ratings.book"],
     });

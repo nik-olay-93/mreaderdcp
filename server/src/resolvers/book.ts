@@ -18,6 +18,7 @@ import { InputError } from "../utils/InputError";
 import { MyContext } from "../types";
 import { Account } from "../entities/Account";
 import { Rate } from "../entities/Rate";
+import { checkBookOption } from "../utils/checkBookOptions";
 
 @ObjectType()
 class BookResponse {
@@ -29,7 +30,7 @@ class BookResponse {
 }
 
 @InputType()
-class BookInput {
+export class BookInput {
   @Field(() => String)
   name!: string;
 
@@ -63,7 +64,7 @@ export class BookResolver {
     }
 
     const crId = req.session.userId;
-    const creator = await Account.findOne(crId, { relations: ["books"] });
+    const creator = await Account.findOne(crId);
     if (!creator) {
       return {
         errors: [
@@ -72,6 +73,13 @@ export class BookResolver {
             message: "wrong user",
           },
         ],
+      };
+    }
+
+    const err = checkBookOption(options);
+    if (err) {
+      return {
+        errors: [err],
       };
     }
 
@@ -92,6 +100,7 @@ export class BookResolver {
           ],
         };
       }
+
       let pdir = path.join(
         "C:/projects/mreaderdcp/server",
         "books",
@@ -100,20 +109,19 @@ export class BookResolver {
       fs.mkdir(pdir, { recursive: true }, (err) => {
         if (err) console.log(err);
       });
+
       pdir = path.join(pdir, pc.toString());
+
       const wrStream = fs.createWriteStream(pdir);
       createReadStream().pipe(wrStream, { end: true });
+
       pc += 1;
     }
 
     book.pages = pc;
-    if (!creator.books) {
-      creator.books = [];
-    }
-    creator.books.push(book);
+
     try {
       await book.save();
-      await creator.save();
     } catch (err) {
       console.log(err);
     }
@@ -172,21 +180,24 @@ export class BookResolver {
     const { req } = ctx;
 
     const id = req.session.userId;
+    if (!id) {
+      return false;
+    }
+
     const creator = await Account.findOne(id);
     if (!creator) {
       return false;
     }
 
-    const book = await Book.findOne(bookId);
+    const book = await Book.findOne(bookId, {
+      relations: ["ratings", "ratings.creator"],
+    });
     if (!book) {
       return false;
     }
 
-    var rate = await Rate.findOne({
-      where: {
-        creator: creator,
-        book: this,
-      },
+    var rate = book.ratings.find((val) => {
+      return val.creator.id === creator.id;
     });
 
     if (!rate) {
@@ -195,20 +206,8 @@ export class BookResolver {
 
     rate.score = score;
 
-    if (!book.ratings) {
-      book.ratings = [];
-    }
-    book.ratings.push(rate);
-
-    if (!creator.ratings) {
-      creator.ratings = [];
-    }
-    creator.ratings.push(rate);
-
     try {
-      creator.save();
-      book.save();
-      rate.save();
+      await rate.save();
     } catch (err) {
       console.log(err);
       return false;

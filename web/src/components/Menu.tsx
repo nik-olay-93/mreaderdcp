@@ -5,6 +5,7 @@ import { useRouter } from "next/router";
 import React, { useState } from "react";
 import { BiLogIn, BiLogOut, BiSearchAlt } from "react-icons/bi";
 import { BsPerson, BsPersonPlus } from "react-icons/bs";
+import { GoPlus } from "react-icons/go";
 import { IoMdHome } from "react-icons/io";
 import { useMediaQuery } from "react-responsive";
 import { useLogoutMutation, useMeQuery } from "../generated/graphql";
@@ -93,6 +94,7 @@ export const Menu: React.FC<MenuProps> = ({
         <MenuEntry href="/" text="Home" icon={IoMdHome} />
         <Divider />
         <MenuEntry href="/search" text="Search" icon={BiSearchAlt} />
+        <MenuEntry text="Create" icon={GoPlus} href="/create" />
         <Divider />
         {children}
         {children ? <Divider /> : null}
